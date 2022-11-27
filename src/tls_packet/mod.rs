@@ -21,7 +21,7 @@ pub fn get_sni(packet: &[u8]) -> Option<&str> {
         },
     };
 
-    println!("payload: {:x?}", ethernet_packet.payload);
+    // println!("payload: {:x?}", ethernet_packet.payload);
 
     let mut pos = 0;
 
@@ -51,7 +51,8 @@ pub fn get_sni(packet: &[u8]) -> Option<&str> {
     // next two bytes are length of extensions
     let extension_length = u16::from_be_bytes(ethernet_packet.payload[pos .. pos + 2].try_into().expect("Fucked up"));
     pos += 2;
-    println!("extension length is {:?}, data is {:x?}", extension_length, &ethernet_packet.payload[pos .. pos + extension_length as usize]);
+    // println!("extension length is {:?}, data is {:x?}", extension_length, &ethernet_packet.payload[pos .. pos + extension_length as usize]);
+    println!("extension length is {:?}", extension_length);
 
     let mut ext_pos: usize = 0;
 
