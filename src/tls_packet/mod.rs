@@ -33,26 +33,26 @@ pub fn get_sni(packet: &[u8]) -> Option<&str> {
     // next byte is length of existing session (if any)
     let session_length = u8::from_be_bytes(ethernet_packet.payload[pos .. pos + 1].try_into().expect("Fucked up"));
     pos += 1;
-    println!("session length is {:?}, data is {:x?}", session_length, &ethernet_packet.payload[pos .. pos + session_length as usize]);
+    // println!("session length is {:?}, data is {:x?}", session_length, &ethernet_packet.payload[pos .. pos + session_length as usize]);
     pos += session_length as usize;
 
     // next two bytes give use length of Cipher Suite data
     let cs_length = u16::from_be_bytes(ethernet_packet.payload[pos .. pos + 2].try_into().expect("Fucked up"));
     pos += 2;
-    println!("Cipher Suite length is {:?}, data is {:x?}", cs_length, &ethernet_packet.payload[pos .. pos + cs_length as usize]);
+    // println!("Cipher Suite length is {:?}, data is {:x?}", cs_length, &ethernet_packet.payload[pos .. pos + cs_length as usize]);
     pos += cs_length as usize;
 
     // next byte is length of compression data
     let cd_length = u8::from_be_bytes(ethernet_packet.payload[pos .. pos + 1].try_into().expect("Fucked up"));
     pos += 1;
-    println!("compression data length is {:?}, data is {:x?}", cd_length, &ethernet_packet.payload[pos .. pos + cd_length as usize]);
+    // println!("compression data length is {:?}, data is {:x?}", cd_length, &ethernet_packet.payload[pos .. pos + cd_length as usize]);
     pos += cd_length as usize;
 
     // next two bytes are length of extensions
     let extension_length = u16::from_be_bytes(ethernet_packet.payload[pos .. pos + 2].try_into().expect("Fucked up"));
     pos += 2;
     // println!("extension length is {:?}, data is {:x?}", extension_length, &ethernet_packet.payload[pos .. pos + extension_length as usize]);
-    println!("extension length is {:?}", extension_length);
+    // println!("extension length is {:?}", extension_length);
 
     let mut ext_pos: usize = 0;
 
@@ -63,9 +63,9 @@ pub fn get_sni(packet: &[u8]) -> Option<&str> {
         ext_pos += 2;
 
         if ext_type != 0 {
-            println!("Got non SNI entry. Type: {:x?}", ext_type);
+            // println!("Got non SNI entry. Type: {:x?}", ext_type);
         } else {
-            println!("got SNI entry!");
+            // println!("got SNI entry!");
             let mut sni_pos = 0;
             let _sni_data_len = u16::from_be_bytes(ethernet_packet.payload[pos + ext_pos .. pos + ext_pos + 2].try_into().expect("Fucked up"));
             sni_pos += 2;
