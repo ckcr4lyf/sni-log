@@ -14,7 +14,7 @@ TLS will still protect all your data, so no one can see _what_ you're doing, it'
 
 ## Building
 
-`sni-log` uses [rust-pacp], which in turn depends on libpcap (or Npcap on Windows). You should get the dependencies [as instructed here](https://github.com/rust-pcap/pcap/#installing-dependencies).
+`sni-log` uses [rust-pacp](https://github.com/rust-pcap/pcap), which in turn depends on libpcap (or Npcap on Windows). You should get the dependencies [as instructed here](https://github.com/rust-pcap/pcap/#installing-dependencies).
 
 Then, with the rust toolchain installed, simply run 
 
