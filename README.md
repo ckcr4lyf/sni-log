@@ -34,6 +34,6 @@ sudo ./sni-log
 
 The current version is a quick & dirty PoC to see if I could do this in Rust. The next steps to improve and make this actually usable are:
 
-- [] Pass which interface to listen on via CLI option
-- [] Handle multiple SNI entries
-- [] Support QUIC ClientHello
+- [ ] Pass which interface to listen on via CLI option
+- [ ] Handle multiple SNI entries
+- [ ] Support QUIC ClientHello
