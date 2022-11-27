@@ -11,3 +11,21 @@ The consequence of this is that anyone in between your PC and the server knows w
 ## TLS is still safe!
 
 TLS will still protect all your data, so no one can see _what_ you're doing, it's just the domain that is "leaked". But as noted above, this alone can be revealing.
+
+## Building
+
+`sni-log` uses [rust-pacp], which in turn depends on libpcap (or Npcap on Windows). You should get the dependencies [as instructed here](https://github.com/rust-pcap/pcap/#installing-dependencies).
+
+Then, with the rust toolchain installed, simply run 
+
+```
+cargo build
+```
+
+## Usage
+
+Capturing packets needs superuser permission, so you must run the program as root
+
+```
+sudo ./sni-log
+```
