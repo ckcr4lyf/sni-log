@@ -1,4 +1,3 @@
-use std::error;
 use pcap::{PacketHeader, PacketCodec, Packet, Device, Capture};
 
 mod tls_packet;
@@ -24,24 +23,28 @@ impl PacketCodec for Codec {
     }
 }
 
-fn main() -> Result<(), Box<dyn error::Error>> {
-    let device = Device::lookup()?.ok_or("no device available")?;
-
-    // get the default Device
-    println!("Using device {}", device.name);
-
-    let mut cap = Capture::from_device(device)?.immediate_mode(true).open()?;
+fn main() {
+    let mut cap: Capture<pcap::Active> = match std::env::args().len() {
+        2 => {
+            let if_name = std::env::args().nth(1).expect("failed to get arg");
+            println!("listening on {:?}", if_name);
+            Capture::from_device(if_name.as_str()).expect("no such device").immediate_mode(true).open().expect("failed to open device")
+        },
+        _ => {
+            let device = Device::lookup().expect("device lookup failed").expect("no device found");
+            println!("no interface specified, using device {}", device.name);
+            Capture::from_device(device).expect("no such device").immediate_mode(true).open().expect("failed to open device")
+        },
+    };
 
     cap.filter("tcp port 443 and (tcp[((tcp[12] & 0xf0) >>2)] = 0x16) && (tcp[((tcp[12] & 0xf0) >>2)+5] = 0x01)", true).unwrap();
 
     for packet in cap.iter(Codec) {
-        let packet = packet?;
+        let packet = packet.expect("Failed to read packet");
         let hostname = tls_packet::get_sni(&packet.data);
         
         if let Some(x) = hostname {
             println!("Captured SNI: {:?}", x);
         }
     }
-
-    Ok(())
 }
