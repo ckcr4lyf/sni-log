@@ -7,19 +7,70 @@ pub fn get_sni(packet: &[u8]) -> Option<&str> {
             println!("Failed to parse packet");
             return None;
         },
-        Ok(value) => value,
+        Ok(eth_packet) => {
+            // It may have parsed as ethernet, but if there is no transport
+            // then it is not actually a valid ethernet packet. So need to handle that case
+            match &eth_packet.transport {
+                None => {
+                    println!("[OG] No transport!");
+                    // Try parsing as IP packet
+                    match SlicedPacket::from_ip(packet) {
+                        Err(_) => {
+                            println!("Failed to parse packet");
+                            return None;
+                        },
+                        Ok(ip_packet) => match &ip_packet.transport {
+                            None => {
+                                println!("No transport!");
+                                return None;
+                            },
+                            Some(value) => {
+                                println!("GOT SOME {:?}", value);
+                                match value {
+                                    etherparse::TransportSlice::Tcp(_) => ip_packet,
+                                    _ => return None,
+                                }
+                            }
+                        }
+                    }
+                },
+                Some(value) => match value {
+                    etherparse::TransportSlice::Tcp(_) => eth_packet,
+                    _ => return None,
+                },
+            }
+        }
     };
 
-    match ethernet_packet.transport {
-        None => {
-            println!("No transport!");
-            return None;
-        },
-        Some(value) => match value {
-            etherparse::TransportSlice::Tcp(header) => header,
-            _ => return None,
-        },
-    };
+    // match ethernet_packet.transport {
+    //     None => {
+    //         println!("[OG] No transport!");
+    //         // Try parsing as IP packet
+    //         match SlicedPacket::from_ip(packet) {
+    //             Err(_) => {
+    //                 println!("Failed to parse packet");
+    //                 return None;
+    //             },
+    //             Ok(value) => match value.transport {
+    //                 None => {
+    //                     println!("No transport!");
+    //                     return None;
+    //                 },
+    //                 Some(value) => {
+    //                     println!("GOT SOME {:?}", value);
+    //                     match value {
+    //                         etherparse::TransportSlice::Tcp(header) => header,
+    //                         _ => return None,
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     },
+    //     Some(value) => match value {
+    //         etherparse::TransportSlice::Tcp(header) => header,
+    //         _ => return None,
+    //     },
+    // };
 
     // println!("payload: {:x?}", ethernet_packet.payload);
 
@@ -125,13 +176,10 @@ mod tests {
 
     #[test]
     fn only_ip_packet(){
-
-        use hex;
         // A TLS client hellp catured on tun0, no ethernet headers
-        // TODO: Can probably hardcode as [u8]...
-        let hex_packet = "45000239420240004006be620a100006ac408204863601bb003f0186dcfc1fbc801801f6a68800000101080ad6d8fe916b386c431603010200010001fc030325102f0d643c0df8454aa04ba3b376012113918fb478722035b33e377a381a5f20527255fd221c06f7f8f1ae9b641fcb7a06eb164d9d954f706c0396479a502edd003e130213031301c02cc030009fcca9cca8ccaac02bc02f009ec024c028006bc023c0270067c00ac0140039c009c0130033009d009c003d003c0035002f00ff0100017500000010000e00000b6966636f6e6669672e636f000b000403000102000a00160014001d0017001e00190018010001010102010301040010000e000c02683208687474702f312e31001600000017000000310000000d002a0028040305030603080708080809080a080b080408050806040105010601030303010302040205020602002b0009080304030303020301002d00020101003300260024001d00200829e8c4ec8f1e2dd467b706cb1f7d25bf6bb587a9c95e5d0f75366e1e995f0d001500b200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-        let packet = hex::decode(hex_packet).expect("failed to parse hex");
+        let packet = [69, 0, 2, 57, 66, 2, 64, 0, 64, 6, 190, 98, 10, 16, 0, 6, 172, 64, 130, 4, 134, 54, 1, 187, 0, 63, 1, 134, 220, 252, 31, 188, 128, 24, 1, 246, 166, 136, 0, 0, 1, 1, 8, 10, 214, 216, 254, 145, 107, 56, 108, 67, 22, 3, 1, 2, 0, 1, 0, 1, 252, 3, 3, 37, 16, 47, 13, 100, 60, 13, 248, 69, 74, 160, 75, 163, 179, 118, 1, 33, 19, 145, 143, 180, 120, 114, 32, 53, 179, 62, 55, 122, 56, 26, 95, 32, 82, 114, 85, 253, 34, 28, 6, 247, 248, 241, 174, 155, 100, 31, 203, 122, 6, 235, 22, 77, 157, 149, 79, 112, 108, 3, 150, 71, 154, 80, 46, 221, 0, 62, 19, 2, 19, 3, 19, 1, 192, 44, 192, 48, 0, 159, 204, 169, 204, 168, 204, 170, 192, 43, 192, 47, 0, 158, 192, 36, 192, 40, 0, 107, 192, 35, 192, 39, 0, 103, 192, 10, 192, 20, 0, 57, 192, 9, 192, 19, 0, 51, 0, 157, 0, 156, 0, 61, 0, 60, 0, 53, 0, 47, 0, 255, 1, 0, 1, 117, 0, 0, 0, 16, 0, 14, 0, 0, 11, 105, 102, 99, 111, 110, 102, 105, 103, 46, 99, 111, 0, 11, 0, 4, 3, 0, 1, 2, 0, 10, 0, 22, 0, 20, 0, 29, 0, 23, 0, 30, 0, 25, 0, 24, 1, 0, 1, 1, 1, 2, 1, 3, 1, 4, 0, 16, 0, 14, 0, 12, 2, 104, 50, 8, 104, 116, 116, 112, 47, 49, 46, 49, 0, 22, 0, 0, 0, 23, 0, 0, 0, 49, 0, 0, 0, 13, 0, 42, 0, 40, 4, 3, 5, 3, 6, 3, 8, 7, 8, 8, 8, 9, 8, 10, 8, 11, 8, 4, 8, 5, 8, 6, 4, 1, 5, 1, 6, 1, 3, 3, 3, 1, 3, 2, 4, 2, 5, 2, 6, 2, 0, 43, 0, 9, 8, 3, 4, 3, 3, 3, 2, 3, 1, 0, 45, 0, 2, 1, 1, 0, 51, 0, 38, 0, 36, 0, 29, 0, 32, 8, 41, 232, 196, 236, 143, 30, 45, 212, 103, 183, 6, 203, 31, 125, 37, 191, 107, 181, 135, 169, 201, 94, 93, 15, 117, 54, 110, 30, 153, 95, 13, 0, 21, 0, 178, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
         let parsed_sni = get_sni(&packet);
         assert_eq!(parsed_sni.is_some(), true);
+        assert_eq!(parsed_sni, Some("ifconfig.co"));
     }
 }
