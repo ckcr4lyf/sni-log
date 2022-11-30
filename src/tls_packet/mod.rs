@@ -12,20 +12,20 @@ pub fn get_sni(packet: &[u8]) -> Option<&str> {
             // then it is not actually a valid ethernet packet. So need to handle that case
             match &eth_packet.transport {
                 None => {
-                    println!("[OG] No transport!");
+                    // println!("[OG] No transport!");
                     // Try parsing as IP packet
                     match SlicedPacket::from_ip(packet) {
                         Err(_) => {
-                            println!("Failed to parse packet");
+                            // println!("Failed to parse packet");
                             return None;
                         },
                         Ok(ip_packet) => match &ip_packet.transport {
                             None => {
-                                println!("No transport!");
+                                // println!("No transport!");
                                 return None;
                             },
                             Some(value) => {
-                                println!("GOT SOME {:?}", value);
+                                // println!("GOT SOME {:?}", value);
                                 match value {
                                     etherparse::TransportSlice::Tcp(_) => ip_packet,
                                     _ => return None,
