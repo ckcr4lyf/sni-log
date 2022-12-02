@@ -2,7 +2,7 @@ use etherparse::SlicedPacket;
 
 pub fn get_sni(packet: &[u8]) -> Option<&str> {
 
-    let ethernet_packet = match SlicedPacket::from_ethernet(packet) {
+    let ethernet_packet: SlicedPacket = match SlicedPacket::from_ethernet(packet) {
         Err(_) => {
             println!("Failed to parse packet");
             return None;
@@ -41,36 +41,6 @@ pub fn get_sni(packet: &[u8]) -> Option<&str> {
             }
         }
     };
-
-    // match ethernet_packet.transport {
-    //     None => {
-    //         println!("[OG] No transport!");
-    //         // Try parsing as IP packet
-    //         match SlicedPacket::from_ip(packet) {
-    //             Err(_) => {
-    //                 println!("Failed to parse packet");
-    //                 return None;
-    //             },
-    //             Ok(value) => match value.transport {
-    //                 None => {
-    //                     println!("No transport!");
-    //                     return None;
-    //                 },
-    //                 Some(value) => {
-    //                     println!("GOT SOME {:?}", value);
-    //                     match value {
-    //                         etherparse::TransportSlice::Tcp(header) => header,
-    //                         _ => return None,
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     },
-    //     Some(value) => match value {
-    //         etherparse::TransportSlice::Tcp(header) => header,
-    //         _ => return None,
-    //     },
-    // };
 
     // println!("payload: {:x?}", ethernet_packet.payload);
 
