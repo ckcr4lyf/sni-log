@@ -13,12 +13,7 @@ pub fn get_sni(packet: &[u8]) -> Option<&str> {
                         Err(_) => {
                             return None;
                         },
-                        Ok(ip_packet) => match &ip_packet.transport {
-                            None => {
-                                return None;
-                            },
-                            Some(_) => ip_packet
-                        }
+                        Ok(ip_packet) => ip_packet
                     }
                 },
                 Some(_) => eth_packet
