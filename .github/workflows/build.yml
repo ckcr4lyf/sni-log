@@ -45,3 +45,29 @@ jobs:
         continue-on-error: false
         with:
           command: test
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install libpcap
+        run: sudo apt-get install libpcap-dev
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Run cargo Build
+        run: cargo build --release
+      
+      - name: Publish artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: sni-log
+          path: target/releas/sni-log
