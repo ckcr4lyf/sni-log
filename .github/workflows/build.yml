@@ -54,7 +54,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install libpcap
-        run: sudo apt-get install libpcap-dev
+        run: sudo apt-get install libpcap-dev curl
 
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
@@ -71,3 +71,10 @@ jobs:
         with:
           name: sni-log
           path: target/release/sni-log
+
+      - name: Try actual test
+        run: |
+          curl -v https://ifconfig.co
+          ./target/release/sni-log &
+          killall sni-log
+
