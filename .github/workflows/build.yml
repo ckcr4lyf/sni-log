@@ -64,20 +64,6 @@ jobs:
           override: true
 
       - name: Run cargo Build
-        run: cargo build --release
-      
-      - name: Publish artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: sni-log
-          path: target/release/sni-log
-
-      - name: Try actual test
         run: |
-          ./target/release/sni-log > log.txt &
-          curl https://ifconfig.co
-          cat log.txt
-          xxd log.txt
-          sha256sum log.txt
-          killall sni-log
-
+          rustup target add x86_64-unknown-linux-musl
+          cargo build --target x86_64-unknown-linux-musl --release
