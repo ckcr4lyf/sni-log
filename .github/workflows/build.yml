@@ -70,4 +70,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: sni-log
-          path: target/releas/sni-log
+          path: target/release/sni-log
