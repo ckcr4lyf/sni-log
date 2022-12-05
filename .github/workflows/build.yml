@@ -74,7 +74,10 @@ jobs:
 
       - name: Try actual test
         run: |
-          curl -v https://ifconfig.co
-          ./target/release/sni-log &
+          ./target/release/sni-log > log.txt &
+          curl https://ifconfig.co
+          cat log.txt
+          xxd log.txt
+          sha256sum log.txt
           killall sni-log
 
