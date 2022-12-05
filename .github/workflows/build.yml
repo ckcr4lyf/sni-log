@@ -67,3 +67,9 @@ jobs:
         run: |
           rustup target add x86_64-unknown-linux-musl
           cargo build --target x86_64-unknown-linux-musl --release
+
+      - name: Publish artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: sni-log
+          path: target/x86_64-unknown-linux-musl/release/sni-log
