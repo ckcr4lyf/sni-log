@@ -27,8 +27,10 @@ cargo build
 Capturing packets needs superuser permission, so you must run the program as root
 
 ```
-sudo ./sni-log
+sudo ./sni-log [interface]
 ```
+
+`[interface]` is optional. If not provided, it will listen on the default interface.
 
 ## Shorcomings
 
