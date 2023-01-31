@@ -1,8 +1,17 @@
 use std::thread;
-
 use pcap::{PacketHeader, PacketCodec, Packet, Device, Capture};
+use clap::Parser;
 
 mod tls_packet;
+
+/// Simple program to greet a person
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+   /// Flag to enable all interfaces
+   #[arg(short, long)]
+   all: bool,
+}
 
 /// Represents a owned packet
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -26,6 +35,34 @@ impl PacketCodec for Codec {
 }
 
 fn main() {
+
+    let args = Args::parse();
+
+    let mut handled: Vec<thread::JoinHandle<()>> = vec![];
+
+    print!("Args are {:?}", args);
+
+    if args.all {
+        // Listen on all devices. Get device names
+        let devices = Device::list().expect("Failed to list devices");
+
+        for device in devices {
+            if device.flags.is_up() {
+                println!("Found device that is up: {:?}. Will listen on it", device.name);
+                let t_handle = thread::spawn(move || {
+                    cap_and_log(&device.name);
+                });
+                handled.push(t_handle);              
+            }
+        }
+    }
+
+    // We started the listener on all, now join all
+    for t_handle in handled {
+        t_handle.join().unwrap();
+    }
+
+
     let h1 = thread::spawn(|| {
         let mut cap: Capture<pcap::Active> = match std::env::args().len() {
             _ => {
@@ -82,4 +119,19 @@ fn main() {
 
     h1.join().unwrap();
     h2.join().unwrap();
+}
+
+fn cap_and_log(if_name: &str) {
+    let mut cap = Capture::from_device(if_name).expect("no such device").immediate_mode(true).open().expect("failed to open device");
+    cap.filter("tcp port 443 and (tcp[((tcp[12] & 0xf0) >>2)] = 0x16) && (tcp[((tcp[12] & 0xf0) >>2)+5] = 0x01)", true).unwrap();
+
+    for packet in cap.iter(Codec) {
+            
+        let packet = packet.expect("Failed to read packet");
+        let hostname = tls_packet::get_sni(&packet.data);
+        
+        if let Some(x) = hostname {
+            println!("[{}] Captured SNI: {:?}", &if_name, x);
+        }
+    }
 }
