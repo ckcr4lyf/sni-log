@@ -11,6 +11,9 @@ struct Args {
    /// Flag to enable all interfaces
    #[arg(short, long)]
    all: bool,
+
+   #[arg(short, long)]
+   interfaces: Option<String>,
 }
 
 /// Represents a owned packet
@@ -40,7 +43,7 @@ fn main() {
 
     let mut handled: Vec<thread::JoinHandle<()>> = vec![];
 
-    print!("Args are {:?}", args);
+    println!("Args are {:?}", args);
 
     if args.all {
         // Listen on all devices. Get device names
@@ -54,6 +57,17 @@ fn main() {
                 });
                 handled.push(t_handle);              
             }
+        }
+    } else if let Some(interfaces_arg) = args.interfaces {
+        let interfaces = interfaces_arg.split(",");
+
+        for interface in interfaces {
+            println!("Going to listen on {}", interface);
+            let i_owned = interface.to_owned();
+            let t_handle = thread::spawn(move || {
+                cap_and_log(&i_owned);
+            });
+            handled.push(t_handle);              
         }
     }
 
