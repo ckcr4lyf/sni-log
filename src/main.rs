@@ -40,10 +40,7 @@ impl PacketCodec for Codec {
 fn main() {
 
     let args = Args::parse();
-
     let mut handled: Vec<thread::JoinHandle<()>> = vec![];
-
-    println!("Args are {:?}", args);
 
     if args.all {
         // Listen on all devices. Get device names
@@ -75,64 +72,6 @@ fn main() {
     for t_handle in handled {
         t_handle.join().unwrap();
     }
-
-
-    let h1 = thread::spawn(|| {
-        let mut cap: Capture<pcap::Active> = match std::env::args().len() {
-            _ => {
-                // let if_name = std::env::args().nth(1).expect("failed to get arg");
-                let if_name = "enp0s31f6".to_string();
-                println!("[T1] listening on {:?}", if_name);
-                Capture::from_device(if_name.as_str()).expect("no such device").immediate_mode(true).open().expect("failed to open device")
-            },
-            // _ => {
-            //     let device = Device::lookup().expect("device lookup failed").expect("no device found");
-            //     println!("no interface specified, using device {}", device.name);
-            //     Capture::from_device(device).expect("no such device").immediate_mode(true).open().expect("failed to open device")
-            // },
-        };
-    
-        cap.filter("tcp port 443 and (tcp[((tcp[12] & 0xf0) >>2)] = 0x16) && (tcp[((tcp[12] & 0xf0) >>2)+5] = 0x01)", true).unwrap();
-    
-        for packet in cap.iter(Codec) {
-            let packet = packet.expect("Failed to read packet");
-            let hostname = tls_packet::get_sni(&packet.data);
-            
-            if let Some(x) = hostname {
-                println!("[T1] Captured SNI: {:?}", x);
-            }
-        }
-    });
-
-    let h2 = thread::spawn(|| {
-        let mut cap: Capture<pcap::Active> = match std::env::args().len() {
-            _ => {
-                // let if_name = std::env::args().nth(1).expect("failed to get arg");
-                let if_name = "wlp58s0".to_string();
-                println!("[T2] listening on {:?}", if_name);
-                Capture::from_device(if_name.as_str()).expect("no such device").immediate_mode(true).open().expect("failed to open device")
-            },
-            // _ => {
-            //     let device = Device::lookup().expect("device lookup failed").expect("no device found");
-            //     println!("no interface specified, using device {}", device.name);
-            //     Capture::from_device(device).expect("no such device").immediate_mode(true).open().expect("failed to open device")
-            // },
-        };
-    
-        cap.filter("tcp port 443 and (tcp[((tcp[12] & 0xf0) >>2)] = 0x16) && (tcp[((tcp[12] & 0xf0) >>2)+5] = 0x01)", true).unwrap();
-    
-        for packet in cap.iter(Codec) {
-            let packet = packet.expect("Failed to read packet");
-            let hostname = tls_packet::get_sni(&packet.data);
-            
-            if let Some(x) = hostname {
-                println!("[T2] Captured SNI: {:?}", x);
-            }
-        }
-    });
-
-    h1.join().unwrap();
-    h2.join().unwrap();
 }
 
 fn cap_and_log(if_name: &str) {
