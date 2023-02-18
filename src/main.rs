@@ -4,7 +4,6 @@ use clap::Parser;
 
 mod tls_packet;
 
-/// Simple program to greet a person
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
@@ -12,6 +11,7 @@ struct Args {
    #[arg(short, long)]
    all: bool,
 
+   /// Flag to pass which interfaces to sniff on, comma separated
    #[arg(short, long)]
    interfaces: Option<String>,
 }
@@ -66,6 +66,14 @@ fn main() {
             });
             handled.push(t_handle);              
         }
+    } else {
+        println!("No interface / all flag specified. Going to attempt to listen on default interface");
+        let device = Device::lookup().unwrap().ok_or("no device available").unwrap();
+        println!("Using device {}", device.name);
+        let t_handle = thread::spawn(move || {
+            cap_and_log(&device.name);
+        });
+        handled.push(t_handle);
     }
 
     // We started the listener on all, now join all
@@ -76,10 +84,10 @@ fn main() {
 
 fn cap_and_log(if_name: &str) {
     let mut cap = Capture::from_device(if_name).expect("no such device").immediate_mode(true).open().expect("failed to open device");
+    // thanks to https://www.baeldung.com/linux/tcpdump-capture-ssl-handshake
     cap.filter("tcp port 443 and (tcp[((tcp[12] & 0xf0) >>2)] = 0x16) && (tcp[((tcp[12] & 0xf0) >>2)+5] = 0x01)", true).unwrap();
 
     for packet in cap.iter(Codec) {
-            
         let packet = packet.expect("Failed to read packet");
         let hostname = tls_packet::get_sni(&packet.data);
         

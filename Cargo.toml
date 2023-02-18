@@ -1,9 +1,11 @@
 [package]
 name = "sni-log"
 version = "0.1.0"
+authors = ["Raghu Saxena <poiasdpoiasd@live.com>"]
+repository = "https://github.com/ckcr4lyf/sni-log"
+description = "Log all domains a TLS connection is attempted to"
+license = "MIT"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 clap = { version = "4.1.4", features = ["derive"] }
