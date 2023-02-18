@@ -8,6 +8,8 @@ The main goal is to highlight (in my opinion) the biggest privacy shortcoming of
 
 The consequence of this is that anyone in between your PC and the server knows which website you're trying to connect to _by domain name_. This is often used to block websites by ISPs (since they sit between you and the internet, and every packet passes through them).
 
+Encrypted DNS (such as DNS-over-HTTPS or DNS-over-TLS) **WONT** help you, since the information is lost during the TLS connection attempt, not the DNS lookup.
+
 ## TLS is still safe!
 
 TLS will still protect all your data, so no one can see _what_ you're doing, it's just the domain that is "leaked". But depending on your threat model, this alone may be compromising.
@@ -38,6 +40,7 @@ To specify interfaces to sniff on:
 sudo ./sni-log -i eth0,eth1
 ```
 
+If neither is specified, it will try and listen on the default interface.
 
 ## Shorcomings
 
