@@ -10,4 +10,5 @@ edition = "2021"
 [dependencies]
 clap = { version = "4.1.4", features = ["derive"] }
 etherparse = "0.13.0"
+nfqueue = "0.9.1"
 pcap = "1.0.0"
