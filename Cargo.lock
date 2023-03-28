@@ -141,9 +141,9 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.137"
+version = "0.2.140"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fc7fcc620a3bff7cdd7a365be3376c97191aeaccc2a603e600951e452615bf89"
+checksum = "99227334921fae1a979cf0bfdfcc6b3e5ce376ef57e16fb6fb3ea2ed6095f80c"
 
 [[package]]
 name = "libloading"
@@ -170,8 +170,7 @@ checksum = "2dffe52ecf27772e601905b7522cb4ef790d2cc203488bbd0e2fe85fcb74566d"
 [[package]]
 name = "nfqueue"
 version = "0.9.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8684696e66ae4f74e6b2fe8868bf317bc4cd0e0e53aabddf7c40dad930111bca"
+source = "git+https://github.com/ckcr4lyf/nfqueue-rs?branch=chore/pnet#eca93716a7b3b2d00013b53e8fa8c95048e376ed"
 dependencies = [
  "libc",
 ]
@@ -288,6 +287,7 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "etherparse",
+ "libc",
  "nfqueue",
  "pcap",
 ]

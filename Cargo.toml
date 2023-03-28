@@ -10,5 +10,6 @@ edition = "2021"
 [dependencies]
 clap = { version = "4.1.4", features = ["derive"] }
 etherparse = "0.13.0"
-nfqueue = "0.9.1"
+libc = "0.2.140"
+nfqueue = { git = "https://github.com/ckcr4lyf/nfqueue-rs", branch="chore/pnet" }
 pcap = "1.0.0"

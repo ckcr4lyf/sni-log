@@ -4,6 +4,29 @@ use clap::Parser;
 
 mod tls_packet;
 
+use libc;
+use nfqueue;
+
+struct State {
+    count: u32,
+}
+
+impl State {
+    pub fn new() -> State {
+        State { count: 0 }
+    }
+}
+
+fn queue_callback(msg: &nfqueue::Message, state: &mut State) {
+    println!("Packet received [id: 0x{:x}]\n", msg.get_id());
+    println!(" -> msg: {}", msg);
+    
+    state.count += 1;
+    println!("count: {}", state.count);
+
+    msg.set_verdict(nfqueue::Verdict::Accept);
+}
+
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
@@ -39,6 +62,22 @@ impl PacketCodec for Codec {
 
 fn main() {
 
+    let mut q = nfqueue::Queue::new(State::new()).unwrap();
+
+    println!("nfqueue example program: print packets metadata and accept packets");
+    // rule for testing
+    // sudo iptables -A OUTPUT -d 95.217.167.10 -j NFQUEUE --queue-num 0
+
+    q.unbind(libc::AF_INET); // ignore result, failure is not critical here
+
+    let rc = q.bind(libc::AF_INET);
+    assert!(rc == 0);
+
+    q.create_queue(0, queue_callback);
+    q.set_mode(nfqueue::CopyMode::CopyPacket, 0xffff);
+
+    q.run_loop();
+    
     let args = Args::parse();
     let mut handled: Vec<thread::JoinHandle<()>> = vec![];
 
