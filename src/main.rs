@@ -106,10 +106,26 @@ impl PacketCodec for Codec {
 fn main() {
 
     let args_0 = Cli::parse();
-    let args = Args::parse();
     // args_0.
 
     let mut q = nfqueue::Queue::new(State::new()).unwrap();
+
+    match args_0.command {
+        Commands::Block { queue_num, block } => {
+            let blacklist = if let Some(csv_block) = block {
+                csv_block
+            } else {
+                "XD".to_string()
+            };
+            println!("Blocking {} on queue #{}", blacklist, queue_num);
+        }
+        Commands::Log { all, interfaces } => {
+            println!("Logging SNIs");
+        }
+    }
+
+    let args = Args::parse();
+
 
     // rule for testing
     // sudo iptables -A OUTPUT -d 95.217.167.10 -j NFQUEUE --queue-num 0
