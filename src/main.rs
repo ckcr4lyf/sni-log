@@ -1,6 +1,6 @@
 use std::thread;
 use pcap::{PacketHeader, PacketCodec, Packet, Device, Capture};
-use clap::Parser;
+use clap::{Parser, Subcommand};
 
 mod tls_packet;
 
@@ -52,6 +52,35 @@ struct Args {
    #[arg(short, long)]
    interfaces: Option<String>,
 }
+#[derive(Parser)]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    // Just logging
+    Log {
+        /// Flag to enable all interfaces
+        #[arg(short, long)]
+        all: bool,
+
+        /// Flag to pass which interfaces to sniff on, comma separated
+        #[arg(short, long)]
+        interfaces: Option<String>,
+    },
+    Block {
+        /// netfilter queue number
+        #[arg(short, long)]
+        queue_num: u8,
+
+        /// domains to block, comma separated.
+        /// Wildcards NOT supported (yet...)
+        #[arg(short, long)]
+        block: Option<String>
+    }
+}
 
 /// Represents a owned packet
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -75,8 +104,13 @@ impl PacketCodec for Codec {
 }
 
 fn main() {
+
+    let args_0 = Cli::parse();
+    let args = Args::parse();
+    // args_0.
+
     let mut q = nfqueue::Queue::new(State::new()).unwrap();
-    
+
     // rule for testing
     // sudo iptables -A OUTPUT -d 95.217.167.10 -j NFQUEUE --queue-num 0
 
@@ -90,7 +124,6 @@ fn main() {
 
     q.run_loop();
     
-    let args = Args::parse();
     let mut handled: Vec<thread::JoinHandle<()>> = vec![];
 
     if args.all {
