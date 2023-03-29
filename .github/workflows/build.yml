@@ -31,7 +31,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install libpcap & netfilter_queue
-        run: sudo apt-get install libpcap-dev libnetfilter_queue
+        run: sudo apt-get install libpcap-dev libnetfilter-queue-dev
 
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
