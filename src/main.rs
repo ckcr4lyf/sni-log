@@ -20,7 +20,21 @@ impl State {
 fn queue_callback(msg: &nfqueue::Message, state: &mut State) {
     println!("Packet received [id: 0x{:x}]\n", msg.get_id());
     println!(" -> msg: {}", msg);
-    
+
+    if let Some(hostname) = tls_packet::get_sni(msg.get_payload()) {
+        println!("Got the SNI out as {}", hostname);
+
+        // TODO: Decision
+        let blocked = "tracker.mywaifu.best";
+
+        if hostname == blocked {
+            println!("ITS BLOCKED!");
+            msg.set_verdict(nfqueue::Verdict::Drop);
+            return;
+        }
+        
+    }
+
     state.count += 1;
     println!("count: {}", state.count);
 
@@ -61,10 +75,8 @@ impl PacketCodec for Codec {
 }
 
 fn main() {
-
     let mut q = nfqueue::Queue::new(State::new()).unwrap();
-
-    println!("nfqueue example program: print packets metadata and accept packets");
+    
     // rule for testing
     // sudo iptables -A OUTPUT -d 95.217.167.10 -j NFQUEUE --queue-num 0
 
