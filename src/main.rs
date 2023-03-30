@@ -118,68 +118,65 @@ fn main() {
                 "XD".to_string()
             };
             println!("Blocking {} on queue #{}", blacklist, queue_num);
+
+            // rule for testing
+            // sudo iptables -A OUTPUT -d 95.217.167.10 -j NFQUEUE --queue-num 0
+
+            q.unbind(libc::AF_INET); // ignore result, failure is not critical here
+
+            let rc = q.bind(libc::AF_INET);
+            assert!(rc == 0);
+
+            q.create_queue(0, queue_callback);
+            q.set_mode(nfqueue::CopyMode::CopyPacket, 0xffff);
+
+            q.run_loop();
         }
         Commands::Log { all, interfaces } => {
             println!("Logging SNIs");
-        }
-    }
 
-    let args = Args::parse();
+            let mut handled: Vec<thread::JoinHandle<()>> = vec![];
 
-
-    // rule for testing
-    // sudo iptables -A OUTPUT -d 95.217.167.10 -j NFQUEUE --queue-num 0
-
-    q.unbind(libc::AF_INET); // ignore result, failure is not critical here
-
-    let rc = q.bind(libc::AF_INET);
-    assert!(rc == 0);
-
-    q.create_queue(0, queue_callback);
-    q.set_mode(nfqueue::CopyMode::CopyPacket, 0xffff);
-
-    q.run_loop();
-    
-    let mut handled: Vec<thread::JoinHandle<()>> = vec![];
-
-    if args.all {
-        // Listen on all devices. Get device names
-        let devices = Device::list().expect("Failed to list devices");
-
-        for device in devices {
-            if device.flags.is_up() {
-                println!("Found device that is up: {:?}. Will listen on it", device.name);
+            if all {
+                // Listen on all devices. Get device names
+                let devices = Device::list().expect("Failed to list devices");
+        
+                for device in devices {
+                    if device.flags.is_up() {
+                        println!("Found device that is up: {:?}. Will listen on it", device.name);
+                        let t_handle = thread::spawn(move || {
+                            cap_and_log(&device.name);
+                        });
+                        handled.push(t_handle);              
+                    }
+                }
+            } else if let Some(interfaces_arg) = interfaces {
+                let interfaces = interfaces_arg.split(",");
+        
+                for interface in interfaces {
+                    println!("Going to listen on {}", interface);
+                    let i_owned = interface.to_owned();
+                    let t_handle = thread::spawn(move || {
+                        cap_and_log(&i_owned);
+                    });
+                    handled.push(t_handle);              
+                }
+            } else {
+                println!("No interface / all flag specified. Going to attempt to listen on default interface");
+                let device = Device::lookup().unwrap().ok_or("no device available").unwrap();
+                println!("Using device {}", device.name);
                 let t_handle = thread::spawn(move || {
                     cap_and_log(&device.name);
                 });
-                handled.push(t_handle);              
+                handled.push(t_handle);
+            }
+        
+            // We started the listener on all, now join all
+            for t_handle in handled {
+                t_handle.join().unwrap();
             }
         }
-    } else if let Some(interfaces_arg) = args.interfaces {
-        let interfaces = interfaces_arg.split(",");
-
-        for interface in interfaces {
-            println!("Going to listen on {}", interface);
-            let i_owned = interface.to_owned();
-            let t_handle = thread::spawn(move || {
-                cap_and_log(&i_owned);
-            });
-            handled.push(t_handle);              
-        }
-    } else {
-        println!("No interface / all flag specified. Going to attempt to listen on default interface");
-        let device = Device::lookup().unwrap().ok_or("no device available").unwrap();
-        println!("Using device {}", device.name);
-        let t_handle = thread::spawn(move || {
-            cap_and_log(&device.name);
-        });
-        handled.push(t_handle);
-    }
-
-    // We started the listener on all, now join all
-    for t_handle in handled {
-        t_handle.join().unwrap();
-    }
+    }    
 }
 
 fn cap_and_log(if_name: &str) {
