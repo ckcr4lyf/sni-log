@@ -81,7 +81,7 @@ pub fn get_sni(packet: &[u8]) -> Option<&str> {
                 }
             }
 
-            sni_pos += 1;
+            // sni_pos += 1;
             // TODO: loop over SNI entries
         }
 
