@@ -22,7 +22,7 @@ fn queue_callback(msg: &nfqueue::Message, state: &mut State) {
     println!(" -> msg: {}", msg);
 
     if let Some(hostname) = tls_packet::get_sni(msg.get_payload()) {
-        println!("Got the SNI out as {}", hostname);
+        println!("[NFQUEUE] Captured SNI: {:?}", hostname);
 
         // TODO: Decision
         let blocked = "tracker.mywaifu.best";
@@ -60,7 +60,7 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    // Just logging
+    /// Just logging
     Log {
         /// Flag to enable all interfaces
         #[arg(short, long)]
@@ -70,6 +70,10 @@ enum Commands {
         #[arg(short, long)]
         interfaces: Option<String>,
     },
+    /// Block TLS connections to a domain via iptables & nfqueue
+    /// 
+    /// As an example, to pass all TLS connections to queue number 0, you can add the rule:
+    /// iptables -A OUTPUT -p tcp --dport 443 -j NFQUEUE --queue-num 0
     Block {
         /// netfilter queue number
         #[arg(short, long)]
