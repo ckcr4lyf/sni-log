@@ -7,36 +7,26 @@ mod tls_packet;
 use libc;
 use nfqueue;
 
-struct State {
-    count: u32,
+struct State<'a>{
+    blacklist: Vec<&'a str>
 }
 
-impl State {
-    pub fn new() -> State {
-        State { count: 0 }
+impl State<'_> {
+    pub fn new(blacklist: Vec<&str>) -> State {
+        State { blacklist: blacklist }
     }
 }
 
 fn queue_callback(msg: &nfqueue::Message, state: &mut State) {
-    println!("Packet received [id: 0x{:x}]\n", msg.get_id());
-    println!(" -> msg: {}", msg);
-
     if let Some(hostname) = tls_packet::get_sni(msg.get_payload()) {
         println!("[NFQUEUE] Captured SNI: {:?}", hostname);
 
-        // TODO: Decision
-        let blocked = "tracker.mywaifu.best";
-
-        if hostname == blocked {
-            println!("ITS BLOCKED!");
+        if state.blacklist.contains(&hostname) {
+            println!("[NFQUEUE] {} IS BLOCKED!", hostname);
             msg.set_verdict(nfqueue::Verdict::Drop);
             return;
         }
-        
     }
-
-    state.count += 1;
-    println!("count: {}", state.count);
 
     msg.set_verdict(nfqueue::Verdict::Accept);
 }
@@ -77,7 +67,7 @@ enum Commands {
     Block {
         /// netfilter queue number
         #[arg(short, long)]
-        queue_num: u8,
+        queue_num: u16,
 
         /// domains to block, comma separated.
         /// Wildcards NOT supported (yet...)
@@ -108,32 +98,25 @@ impl PacketCodec for Codec {
 }
 
 fn main() {
-
     let args_0 = Cli::parse();
-    // args_0.
-
-    let mut q = nfqueue::Queue::new(State::new()).unwrap();
 
     match args_0.command {
         Commands::Block { queue_num, block } => {
-            let blacklist = if let Some(csv_block) = block {
-                csv_block
+            let blacklist: Vec<&str> = if let Some(ref csv_block) = block {
+                csv_block.split(",").collect()
             } else {
-                "XD".to_string()
+                vec![]
             };
-            println!("Blocking {} on queue #{}", blacklist, queue_num);
 
-            // rule for testing
-            // sudo iptables -A OUTPUT -d 95.217.167.10 -j NFQUEUE --queue-num 0
+            let mut q = nfqueue::Queue::new(State::new(blacklist)).unwrap();
 
             q.unbind(libc::AF_INET); // ignore result, failure is not critical here
 
             let rc = q.bind(libc::AF_INET);
             assert!(rc == 0);
 
-            q.create_queue(0, queue_callback);
+            q.create_queue(queue_num, queue_callback);
             q.set_mode(nfqueue::CopyMode::CopyPacket, 0xffff);
-
             q.run_loop();
         }
         Commands::Log { all, interfaces } => {
