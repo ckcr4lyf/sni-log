@@ -41,18 +41,22 @@ cargo build --release
 
 ## Usage
 
-Capturing packets needs superuser permission, so you must run the program as root, or set packet capture perission on the binary: `sudo setcap cap_net_raw,cap_net_admin=eip path/to/bin`.
+### Logging SNIs
+
+If you just want to log the SNIs connection attempts are made to, you can use the `log` subcommand. 
+
+**NOTE:** Capturing packets needs superuser permission, so you must run the program as root, or set packet capture perission on the binary: `sudo setcap cap_net_raw,cap_net_admin=eip path/to/bin`.
 
 To sniff on all interfaces:
 
 ```
-sudo ./sni-log -a
+./sni-log log -a
 ```
 
 To specify interfaces to sniff on:
 
 ```
-sudo ./sni-log -i eth0,eth1
+./sni-log log -i eth0,eth1
 ```
 
 If neither is specified, it will try and listen on the default interface.
