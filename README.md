@@ -1,24 +1,39 @@
 # SNI Log
 
-SNI log is a rust application that inspect packets in realtime and prints the websites that TLS connection attempts are made to.
+SNI log is a rust application that inspect packets in realtime and prints the websites that TLS connection attempts are made to. 
+
+It can also be used to block websites based on the SNI field, making it more powerful than a DNS solution such as pi-hole
 
 ## Purpose
 
-The main goal is to highlight (in my opinion) the biggest privacy shortcoming of TLS: [Server Name Indication](https://www.rfc-editor.org/rfc/rfc6066#section-3). This sends, in plaintext, the domain you are trying to connect to. The reason is that there may be multiple websites on a single IP address, so the server handling the initial connection needs to know which certificate to present.
+The initial goal was just to highlight the shortcomings of TLS when it comes to privacy: even though the content is encrypted, anyone in the middle can determine **which** website you're connecting to.
 
-The consequence of this is that anyone in between your PC and the server knows which website you're trying to connect to _by domain name_. This is often used to block websites by ISPs (since they sit between you and the internet, and every packet passes through them).
-
-Encrypted DNS (such as DNS-over-HTTPS or DNS-over-TLS) **WONT** help you, since the information is lost during the TLS connection attempt, not the DNS lookup.
-
-## TLS is still safe!
-
-TLS will still protect all your data, so no one can see _what_ you're doing, it's just the domain that is "leaked". But depending on your threat model, this alone may be compromising.
+Since I've personally also experienced what must be SNI-based blocking *(though technically I cannot be 100% sure)* from an ISP in the past, I wanted to also make a PoC so anyone can try and perform SNI-based blocking.
 
 ## Building
 
-`sni-log` uses [rust-pacp](https://github.com/rust-pcap/pcap), which in turn depends on libpcap (or Npcap on Windows). You should get the dependencies [as instructed here](https://github.com/rust-pcap/pcap/#installing-dependencies).
+**NOTE: Currently sni-log ONLY supports Linux**
 
-Then, with the rust toolchain installed, simply run 
+`sni-log` required the following libraries be present on your system: 
+
+* [libpcap](https://github.com/the-tcpdump-group/libpcap)
+* [libnetfilter_queue](https://netfilter.org/projects/libnetfilter_queue/)
+
+**Arch Linux**
+
+```
+pacman -S libpcap libnetfilter_queue
+```
+
+**Ubuntu**
+
+```
+apt-get install libpcap-dev libnetfilter-queue-dev
+```
+
+**Building the binary**
+
+Ensure you have the rust toolchain installed, for e.g. via [rustup](https://rustup.rs/), then run:
 
 ```
 cargo build --release
