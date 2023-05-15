@@ -5,6 +5,8 @@ use clap::{Parser, Subcommand};
 mod tls_packet;
 
 use libc;
+
+#[cfg(target_os = "linux")]
 use nfqueue;
 
 struct State<'a>{
@@ -17,6 +19,7 @@ impl State<'_> {
     }
 }
 
+#[cfg(target_os = "linux")]
 fn queue_callback(msg: &nfqueue::Message, state: &mut State) {
     if let Some(hostname) = tls_packet::get_sni(msg.get_payload()) {
         println!("[NFQUEUE] Captured SNI: {:?}", hostname);
@@ -60,6 +63,7 @@ enum Commands {
         #[arg(short, long)]
         interfaces: Option<String>,
     },
+    #[cfg(target_os = "linux")]
     /// Block TLS connections to a domain via iptables & nfqueue
     /// 
     /// As an example, to pass all TLS connections to queue number 0, you can add the rule:
@@ -101,6 +105,7 @@ fn main() {
     let args_0 = Cli::parse();
 
     match args_0.command {
+        #[cfg(target_os = "linux")]
         Commands::Block { queue_num, block } => {
             let blacklist: Vec<&str> = if let Some(ref csv_block) = block {
                 csv_block.split(",").collect()

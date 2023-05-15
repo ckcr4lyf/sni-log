@@ -168,14 +168,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2dffe52ecf27772e601905b7522cb4ef790d2cc203488bbd0e2fe85fcb74566d"
 
 [[package]]
-name = "nfqueue"
-version = "0.9.1"
-source = "git+https://github.com/ckcr4lyf/nfqueue-rs?branch=chore/pnet#eca93716a7b3b2d00013b53e8fa8c95048e376ed"
-dependencies = [
- "libc",
-]
-
-[[package]]
 name = "once_cell"
 version = "1.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -288,7 +280,6 @@ dependencies = [
  "clap",
  "etherparse",
  "libc",
- "nfqueue",
  "pcap",
 ]
 
