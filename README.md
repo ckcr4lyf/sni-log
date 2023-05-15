@@ -63,7 +63,7 @@ If neither is specified, it will try and listen on the default interface.
 
 ### Blocking SNIs
 
-Example iptables rule
+Example iptables rule. The `--queue-bypass` flag will allow connections if no userspace app is connected to the queue (e.g. to make decisions)
 
 ```
 # iptables -A OUTPUT -j NFQUEUE --queue-num 0 --queue-bypass
@@ -77,7 +77,7 @@ Run program:
 
 Try & curl an HTTPS website!
 
-## Shorcomings
+## Shortcomings
 
 The next steps to improve the functionality are:
 

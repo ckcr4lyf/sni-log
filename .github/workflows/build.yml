@@ -4,7 +4,7 @@ name: Build & Test
 
 jobs:
   check:
-    name: Check
+    name: Check Linux
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
@@ -22,6 +22,50 @@ jobs:
         continue-on-error: false
         with:
           command: check
+
+  check-win:
+    name: Check Windows
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          target: x86_64-pc-windows-msvc
+          toolchain: stable
+          override: true
+
+      - name: Run cargo check
+        uses: actions-rs/cargo@v1
+        continue-on-error: false
+        with:
+          command: check
+          args: --target x86_64-pc-windows-msvc 
+
+  check-mac:
+    name: Check Mac (OSX)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          target: x86_64-apple-darwin
+          toolchain: stable
+          override: true
+
+      - name: Run cargo check
+        uses: actions-rs/cargo@v1
+        continue-on-error: false
+        with:
+          command: check    
+          args: --target x86_64-apple-darwin
 
   test:
     name: Test Suite
