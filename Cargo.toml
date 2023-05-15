@@ -13,5 +13,5 @@ etherparse = "0.13.0"
 libc = "0.2.140"
 pcap = "1.0.0"
 
-[target.'cfg(target_os = "linux")']
-nfqueue = { git = "https://github.com/ckcr4lyf/nfqueue-rs", branch="chore/pnet" }
+[target.'cfg(target_os = "linux")'.dependencies]
+nfqueue = "=0.9.1"

@@ -113,7 +113,8 @@ fn main() {
                 vec![]
             };
 
-            let mut q = nfqueue::Queue::new(State::new(blacklist)).unwrap();
+            let mut q = nfqueue::Queue::new(State::new(blacklist));
+            q.open();
 
             q.unbind(libc::AF_INET); // ignore result, failure is not critical here
 

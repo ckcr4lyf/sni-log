@@ -61,6 +61,22 @@ To specify interfaces to sniff on:
 
 If neither is specified, it will try and listen on the default interface.
 
+### Blocking SNIs
+
+Example iptables rule
+
+```
+# iptables -A OUTPUT -j NFQUEUE --queue-num 0 --queue-bypass
+```
+
+Run program:
+
+```
+# ./sni-log block --queue-num 0
+```
+
+Try & curl an HTTPS website!
+
 ## Shorcomings
 
 The next steps to improve the functionality are:
