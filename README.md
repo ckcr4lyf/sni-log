@@ -61,7 +61,23 @@ To specify interfaces to sniff on:
 
 If neither is specified, it will try and listen on the default interface.
 
-## Shorcomings
+### Blocking SNIs
+
+Example iptables rule. The `--queue-bypass` flag will allow connections if no userspace app is connected to the queue (e.g. to make decisions)
+
+```
+# iptables -A OUTPUT -j NFQUEUE --queue-num 0 --queue-bypass
+```
+
+Run program:
+
+```
+# ./sni-log block --queue-num 0
+```
+
+Try & curl an HTTPS website!
+
+## Shortcomings
 
 The next steps to improve the functionality are:
 
