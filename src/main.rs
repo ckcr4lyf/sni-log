@@ -4,15 +4,18 @@ use clap::{Parser, Subcommand};
 
 mod tls_packet;
 
+#[cfg(target_os = "linux")]
 use libc;
 
 #[cfg(target_os = "linux")]
 use nfqueue;
 
+#[cfg(target_os = "linux")]
 struct State<'a>{
     blacklist: Vec<&'a str>
 }
 
+#[cfg(target_os = "linux")]
 impl State<'_> {
     pub fn new(blacklist: Vec<&str>) -> State {
         State { blacklist: blacklist }
